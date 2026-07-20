@@ -11,10 +11,30 @@
                 </div>
 
                 <!-- Navigation Links -->
-                <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
+                <div class="hidden space-x-6 sm:-my-px sm:ms-10 sm:flex">
                     <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
-                        {{ __('Dashboard') }}
+                        {{ __('Home') }}
                     </x-nav-link>
+                    <x-nav-link :href="route('members.index')" :active="request()->routeIs('members.*')">
+                        {{ __('Members') }}
+                    </x-nav-link>
+                    <x-nav-link :href="route('gallery.index')" :active="request()->routeIs('gallery.*')">
+                        {{ __('Gallery') }}
+                    </x-nav-link>
+                    <x-nav-link :href="route('memorial.index')" :active="request()->routeIs('memorial.*')">
+                        {{ __('Fallen Brothers') }}
+                    </x-nav-link>
+                    <x-nav-link :href="route('visit.index')" :active="request()->routeIs('visit.*')">
+                        {{ __('Visit') }}
+                    </x-nav-link>
+                    <x-nav-link :href="route('forum.index')" :active="request()->routeIs('forum.*')">
+                        {{ __('Forums') }}
+                    </x-nav-link>
+                    @if (Auth::user()->isAdmin())
+                        <x-nav-link :href="route('admin.members.index')" :active="request()->routeIs('admin.*')">
+                            {{ __('Admin') }}
+                        </x-nav-link>
+                    @endif
                 </div>
             </div>
 
@@ -68,8 +88,28 @@
     <div :class="{'block': open, 'hidden': ! open}" class="hidden sm:hidden">
         <div class="pt-2 pb-3 space-y-1">
             <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
-                {{ __('Dashboard') }}
+                {{ __('Home') }}
             </x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('members.index')" :active="request()->routeIs('members.*')">
+                {{ __('Members') }}
+            </x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('gallery.index')" :active="request()->routeIs('gallery.*')">
+                {{ __('Gallery') }}
+            </x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('memorial.index')" :active="request()->routeIs('memorial.*')">
+                {{ __('Fallen Brothers') }}
+            </x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('visit.index')" :active="request()->routeIs('visit.*')">
+                {{ __('Visit') }}
+            </x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('forum.index')" :active="request()->routeIs('forum.*')">
+                {{ __('Forums') }}
+            </x-responsive-nav-link>
+            @if (Auth::user()->isAdmin())
+                <x-responsive-nav-link :href="route('admin.members.index')" :active="request()->routeIs('admin.*')">
+                    {{ __('Admin') }}
+                </x-responsive-nav-link>
+            @endif
         </div>
 
         <!-- Responsive Settings Options -->

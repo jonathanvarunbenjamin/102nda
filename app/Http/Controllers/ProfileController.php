@@ -2,59 +2,83 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\ProfileUpdateRequest;
-use Illuminate\Http\RedirectResponse;
+use App\Models\FamilyMember;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Redirect;
-use Illuminate\View\View;
 
 class ProfileController extends Controller
 {
-    /**
-     * Display the user's profile form.
-     */
-    public function edit(Request $request): View
+    /** Show the signed-in member's own profile edit form. */
+    public function edit(Request $request)
     {
-        return view('profile.edit', [
-            'user' => $request->user(),
-        ]);
+        $user = $request->user();
+        $user->load(['profile', 'familyMembers']);
+
+        $spouse = $user->familyMembers->firstWhere('relation', FamilyMember::RELATION_SPOUSE);
+        $children = $user->familyMembers->where('relation', FamilyMember::RELATION_CHILD)->values();
+
+        return view('profile.edit', compact('user', 'spouse', 'children'));
     }
 
-    /**
-     * Update the user's profile information.
-     */
-    public function update(ProfileUpdateRequest $request): RedirectResponse
+    /** Save the member's profile, service details and family. */
+    public function update(Request $request)
     {
-        $request->user()->fill($request->validated());
-
-        if ($request->user()->isDirty('email')) {
-            $request->user()->email_verified_at = null;
-        }
-
-        $request->user()->save();
-
-        return Redirect::route('profile.edit')->with('status', 'profile-updated');
-    }
-
-    /**
-     * Delete the user's account.
-     */
-    public function destroy(Request $request): RedirectResponse
-    {
-        $request->validateWithBag('userDeletion', [
-            'password' => ['required', 'current_password'],
-        ]);
-
         $user = $request->user();
 
-        Auth::logout();
+        $data = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'academy_number' => ['nullable', 'string', 'max:100'],
+            'squadron' => ['nullable', 'string', 'max:100'],
+            'course' => ['nullable', 'string', 'max:100'],
+            'phone' => ['nullable', 'string', 'max:50'],
+            'address' => ['nullable', 'string', 'max:1000'],
+            'date_of_birth' => ['nullable', 'date'],
+            'date_of_marriage' => ['nullable', 'date'],
+            'bio' => ['nullable', 'string', 'max:2000'],
 
-        $user->delete();
+            'spouse_name' => ['nullable', 'string', 'max:255'],
+            'spouse_dob' => ['nullable', 'date'],
 
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
+            'children' => ['nullable', 'array', 'max:'.FamilyMember::MAX_CHILDREN],
+            'children.*.name' => ['nullable', 'string', 'max:255'],
+            'children.*.date_of_birth' => ['nullable', 'date'],
+        ]);
 
-        return Redirect::to('/');
+        // Core identity
+        $user->update(['name' => $data['name']]);
+
+        // Profile (one-to-one)
+        $user->profile()->updateOrCreate([], [
+            'academy_number' => $data['academy_number'] ?? null,
+            'squadron' => $data['squadron'] ?? null,
+            'course' => $data['course'] ?? null,
+            'phone' => $data['phone'] ?? null,
+            'address' => $data['address'] ?? null,
+            'date_of_birth' => $data['date_of_birth'] ?? null,
+            'date_of_marriage' => $data['date_of_marriage'] ?? null,
+            'bio' => $data['bio'] ?? null,
+        ]);
+
+        // Rebuild family members from the form (simple + reliable at this scale).
+        $user->familyMembers()->delete();
+
+        if (! empty($data['spouse_name'])) {
+            $user->familyMembers()->create([
+                'relation' => FamilyMember::RELATION_SPOUSE,
+                'name' => $data['spouse_name'],
+                'date_of_birth' => $data['spouse_dob'] ?? null,
+            ]);
+        }
+
+        foreach ($data['children'] ?? [] as $child) {
+            if (! empty($child['name'])) {
+                $user->familyMembers()->create([
+                    'relation' => FamilyMember::RELATION_CHILD,
+                    'name' => $child['name'],
+                    'date_of_birth' => $child['date_of_birth'] ?? null,
+                ]);
+            }
+        }
+
+        return redirect()->route('profile.edit')->with('status', 'profile-updated');
     }
 }

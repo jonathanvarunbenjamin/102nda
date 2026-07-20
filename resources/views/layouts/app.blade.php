@@ -27,6 +27,15 @@
                 </header>
             @endisset
 
+            <!-- Flash message -->
+            @if (session('status') && session('status') !== 'profile-updated')
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
+                    <div class="rounded-md bg-green-50 border border-green-200 p-3 text-sm text-green-800">
+                        {{ session('status') }}
+                    </div>
+                </div>
+            @endif
+
             <!-- Page Content -->
             <main>
                 {{ $slot }}

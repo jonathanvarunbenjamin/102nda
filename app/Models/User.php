@@ -45,6 +45,16 @@ class User extends Authenticatable
         return $this->hasMany(FamilyMember::class);
     }
 
+    public function albums(): HasMany
+    {
+        return $this->hasMany(Album::class);
+    }
+
+    public function forumThreads(): HasMany
+    {
+        return $this->hasMany(ForumThread::class);
+    }
+
     // --- Access-control helpers ---
 
     public function isAdmin(): bool
