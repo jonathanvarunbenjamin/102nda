@@ -41,6 +41,7 @@ class ForumController extends Controller
         $thread->posts()->create([
             'user_id' => Auth::id(),
             'body' => $data['body'],
+            'user_id' => $request->user()->id,
         ]);
 
         return redirect()->route('forum.show', $thread)->with('status', 'Thread posted.');
