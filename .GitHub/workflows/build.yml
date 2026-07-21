@@ -1,0 +1,27 @@
+name: Build frontend assets
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - run: npm install
+      - run: npm run build
+
+      - name: Commit built assets
+        run: |
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          git add -f public/build
+          git commit -m "Build assets [skip ci]" || echo "Nothing to commit"
+          git push
